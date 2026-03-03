@@ -39,6 +39,10 @@ function renderHintsTable(wordsWithHints) {
 function syncCustomWordsFromTable() {
   const lines = document.getElementById('custom-words-textarea').value
     .split('\n').map(l => l.trim()).filter(Boolean);
+  // #region agent log
+  console.log('[DBG syncCustomWords] lines:', lines.length, '| current customWords hints:', gameState.customWords.map(w=>({w:w.word,e:w.easyHint,h:w.hardHint})));
+  fetch('http://127.0.0.1:7631/ingest/e2f31f58-c389-4ee7-8e4c-5cb68f037e83',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'322d0a'},body:JSON.stringify({sessionId:'322d0a',location:'app.js:syncCustomWords',message:'syncCustomWordsFromTable called',data:{linesCount:lines.length,lines,currentCustomWords:gameState.customWords},timestamp:Date.now(),hypothesisId:'H-B'})}).catch(()=>{});
+  // #endregion
   if (lines.length > 0) {
     gameState.customWords = lines.map(w => ({ word: w, easyHint: '', hardHint: '' }));
   }
@@ -433,6 +437,12 @@ function renderBackFace(el, idx) {
   const role = gameState.roles[idx];
   const isImpostor = role === 'impostor';
   el.className = `card-face card-face-back role-${role}`;
+
+  // #region agent log
+  const _dbgData = {hintMode:gameState.hintMode,isImpostor,word:gameState.word?.word,easyHint:gameState.word?.easyHint,hardHint:gameState.word?.hardHint,customWordsCount:gameState.customWords.length,customWordsSample:gameState.customWords.slice(0,2)};
+  console.log('[DBG renderBackFace]', _dbgData);
+  fetch('http://127.0.0.1:7631/ingest/e2f31f58-c389-4ee7-8e4c-5cb68f037e83',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'322d0a'},body:JSON.stringify({sessionId:'322d0a',location:'app.js:renderBackFace',message:'renderBackFace called',data:_dbgData,timestamp:Date.now(),hypothesisId:'H-A,H-B,H-C,H-D'})}).catch(()=>{});
+  // #endregion
 
   let hintHtml = '';
   if (gameState.hintMode !== 'none' && isImpostor) {
